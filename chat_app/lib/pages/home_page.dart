@@ -1,7 +1,11 @@
+import 'package:chat_app/pages/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/pages/chat_page.dart';
+import 'package:chat_app/pages/profile_page.dart';
+import 'package:provider/provider.dart';
+import 'package:chat_app/viewmodel/auth_viewmodel.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -13,9 +17,30 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: Text('Home Page'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => ProfilePage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await authViewModel.signOut();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => LoginPage()),
+                (route) => false,
+              );
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('users').snapshots(),
@@ -53,7 +78,7 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => ChatPage(userId: user.id),
+                      builder: (context) => ChatPage(receiverId: user.id),
                     ),
                   );
                 },
